@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/sky_blue"
     android:padding="16dp"
-    tools:context=".ui.MainActivity">
+    tools:context=".ui.DetailCityWeatherActivity">
 
     <ImageView
         android:id="@+id/imageView"
@@ -419,17 +419,16 @@
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_show_list"
+        android:id="@+id/btn_back"
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fontFamily="@font/regular_poppins"
-        android:text="@string/show_more"
+        android:text="@string/back_to_list"
         android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:strokeColor="@color/white"
-        app:strokeWidth="2dp" />
+        app:strokeWidth="2dp"
+        tools:layout_editor_absoluteX="16dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

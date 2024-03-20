@@ -17,4 +17,6 @@
     <string name="humidity">Humidity</string>
     <string name="refresh">Refresh</string>
     <string name="and_update"><![CDATA[& Update]]></string>
+    <string name="back">Back To My City</string>
+    <string name="back_to_list">Back To List</string>
 </resources>
