@@ -2,4 +2,6 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="sky_blue">#5DB3ED</color>
+    <color name="background_card">#3CF8F5F8</color>
 </resources>

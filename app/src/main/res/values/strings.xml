@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">My Weather</string>
+    <string name="your_location">Your location,</string>
+    <string name="default_value">0</string>
+    <string name="celcius_degree">°C</string>
+    <string name="temp_value">%d°C</string>
+    <string name="updated_at">Updated at %s</string>
+    <string name="sky_status">Clear Sky</string>
+    <string name="min_temp">Min. Temp: %d°C</string>
+    <string name="max_temp">Max. Temp: %d°C</string>
+    <string name="show_more">Show 6 more cities</string>
+    <string name="sunrise">Sunrise</string>
+    <string name="time_default">00.00am</string>
+    <string name="sunset">Sunset</string>
+    <string name="wind">Wind</string>
+    <string name="pressure">Pressure</string>
+    <string name="humidity">Humidity</string>
+    <string name="refresh">Refresh</string>
+    <string name="and_update"><![CDATA[& Update]]></string>
 </resources>
