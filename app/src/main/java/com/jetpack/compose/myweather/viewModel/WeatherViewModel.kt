@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.jetpack.compose.myweather.data.database.WeatherRecord
 import com.jetpack.compose.myweather.data.remote.repository.WeatherRepository
 import com.jetpack.compose.myweather.utils.Helper
+import com.jetpack.compose.myweather.utils.UserPreference
 import kotlinx.coroutines.launch
 import java.net.UnknownHostException
 
@@ -17,9 +18,12 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
     val latitude: LiveData<Double> = _latitude
     private var _longitude = MutableLiveData<Double>(0.0)
     val longitude: LiveData<Double> = _longitude
+    private var _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
     private val _showNoInternetSnackbar = MutableLiveData<Boolean>()
     private var _currentCity = MutableLiveData<String>()
     val currentCity: LiveData<String> = _currentCity
+    private lateinit var userPreference: UserPreference
     val showNoInternetSnackbar: LiveData<Boolean>
         get() = _showNoInternetSnackbar
 
@@ -35,6 +39,7 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
     fun getWeatherReport(latitude: Double, longitude: Double, appId: String) =
         viewModelScope.launch {
             try {
+                _isLoading.value = true
                 repository.getCurrentWeather(latitude.toString(), longitude.toString(), appId)
                     .let { response ->
                         if (response.isSuccessful) {
@@ -60,16 +65,19 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
                             Log.d("TAG", "GET Weather Error Code: ${response.code()}")
                         }
                     }
+                _isLoading.value = false
             } catch (e: UnknownHostException) {
                 // Handle the exception, for example, show a message to the user indicating no internet connection
                 Log.e("TAG", "Network error: ${e.message}")
                 setSnackBarValue(true)
+                _isLoading.value = false
             }
         }
 
     fun getCityWeather(city: String, appId: String) =
         viewModelScope.launch {
             try {
+                _isLoading.value = true
                 repository.getCityCurrentWeather(city, appId)
                     .let { response ->
                         if (response.isSuccessful) {
@@ -90,7 +98,7 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
                                     sunset = response.body()?.sys!!.sunset.toString()
                                 )
                             )
-//                            }
+                            _isLoading.value = false
                         } else {
                             Log.d("TAG", "GET Weather Error Code: ${response.code()}")
                         }
@@ -99,12 +107,12 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
                 // Handle the exception, for example, show a message to the user indicating no internet connection
                 Log.e("TAG", "Network error: ${e.message}")
                 setSnackBarValue(true)
+                _isLoading.value = false
             }
         }
 
     fun setSnackBarValue(status: Boolean) {
         _showNoInternetSnackbar.value = status
     }
-
 
 }

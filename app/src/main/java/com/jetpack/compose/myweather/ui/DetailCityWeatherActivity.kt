@@ -1,8 +1,9 @@
 package com.jetpack.compose.myweather.ui
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import com.jetpack.compose.myweather.BuildConfig
 import com.jetpack.compose.myweather.R
 import com.jetpack.compose.myweather.data.lib.City
@@ -72,10 +73,16 @@ class DetailCityWeatherActivity : AppCompatActivity() {
                         }
                     }
                 }
+                isLoading.observe(this@DetailCityWeatherActivity){
+                    showLoading(it)
+                }
             }
         }
         binding.cardRefresh.setOnClickListener {
             setupInformation(city)
         }
+    }
+    private fun showLoading(state: Boolean) {
+        binding.progressBar.visibility = if (state) View.VISIBLE else View.GONE
     }
 }

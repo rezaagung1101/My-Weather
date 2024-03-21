@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -19,10 +20,12 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.material.snackbar.Snackbar
 import com.jetpack.compose.myweather.BuildConfig
 import com.jetpack.compose.myweather.R
+import com.jetpack.compose.myweather.data.database.WeatherRecord
 import com.jetpack.compose.myweather.data.remote.api.ApiConfig
 import com.jetpack.compose.myweather.databinding.ActivityMainBinding
 import com.jetpack.compose.myweather.utils.Constanta.PERMISSION_REQUEST_CODE
 import com.jetpack.compose.myweather.utils.Helper
+import com.jetpack.compose.myweather.utils.UserPreference
 import com.jetpack.compose.myweather.viewModel.WeatherViewModel
 import com.jetpack.compose.myweather.viewModel.WeatherViewModelFactory
 
@@ -31,15 +34,15 @@ class MainActivity : AppCompatActivity() {
     private val appId = BuildConfig.APP_ID
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
-    private var locationUpdatesRequested = false
     private val weatherViewModel: WeatherViewModel by viewModels()
+    private lateinit var userPreference: UserPreference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-
+        userPreference = UserPreference(this)
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
@@ -56,8 +59,8 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        // Request location updates when activity is created
         getViewModel()
+        // Request location updates when activity is created
         requestLocationUpdates()
         setupInformation()
     }
@@ -136,27 +139,8 @@ class MainActivity : AppCompatActivity() {
                     getCityWeatherDB(it).observe(this@MainActivity) { weather ->
                         if (weather != null) {
                             binding.apply {
-                                tvYourCityLocation.text = weather.city
-                                tvSkyStatus.text = weather.description
-                                tvMainTemperature.text =
-                                    Helper.kelvinToCelcius(weather.temperature.toDouble())
-                                tvWindValue.text = weather.speed + " km/h"
-                                tvHumidityValue.text = weather.humidity + " hPa"
-                                tvPressureValue.text = weather.pressure + " %"
-                                tvSunriseValue.text =
-                                    Helper.convertUnixTimeToAMPM(weather.sunrise.toInt())
-                                tvSunsetValue.text =
-                                    Helper.convertUnixTimeToAMPM(weather.sunset.toInt())
-                                tvMinTemp.text = resources.getString(
-                                    R.string.min_temp,
-                                    Helper.kelvinToCelcius(weather.minTemperature.toDouble())
-                                )
-                                tvMaxTemp.text = resources.getString(
-                                    R.string.max_temp,
-                                    Helper.kelvinToCelcius(weather.maxTemperature.toDouble())
-                                )
-                                tvUpdatedAt.text =
-                                    resources.getString(R.string.updated_at, weather.updatedAt)
+                                userPreference.saveCurrentCity(weather.city)
+                                setupInformation(weather)
                             }
                         }
                     }
@@ -183,21 +167,54 @@ class MainActivity : AppCompatActivity() {
                         showPermissionDeniedSnackbar()
                     }
                 }
+                showNoInternetSnackbar.observe(this@MainActivity) { showSnackbar ->
+                    if (showSnackbar) {
+                        Snackbar.make(
+                            binding.root,
+                            "No internet connection",
+                            Snackbar.LENGTH_LONG
+                        ).show()
+                        // Reset the value to prevent showing the Snackbar repeatedly
+                        weatherViewModel.setSnackBarValue(false)
+                        getCityWeatherDB(userPreference.getCurrentCity()!!).observe(this@MainActivity){
+                            setupInformation(it)
+                        }
+                    }
+                }
+                isLoading.observe(this@MainActivity) {
+                    showLoading(it)
+                }
             }
         }
         binding.btnShowList.setOnClickListener {
             startActivity(Intent(this, ListCityActivity::class.java))
         }
-        weatherViewModel.showNoInternetSnackbar.observe(this) { showSnackbar ->
-            if (showSnackbar) {
-                Snackbar.make(
-                    binding.root,
-                    "No internet connection",
-                    Snackbar.LENGTH_LONG
-                ).show()
-                // Reset the value to prevent showing the Snackbar repeatedly
-                weatherViewModel.setSnackBarValue(false)
-            }
+    }
+
+    private fun setupInformation(weather: WeatherRecord){
+        binding.apply {
+            userPreference.saveCurrentCity(weather.city)
+            tvYourCityLocation.text = weather.city
+            tvSkyStatus.text = weather.description
+            tvMainTemperature.text =
+                Helper.kelvinToCelcius(weather.temperature.toDouble())
+            tvWindValue.text = weather.speed + " km/h"
+            tvHumidityValue.text = weather.humidity + " hPa"
+            tvPressureValue.text = weather.pressure + " %"
+            tvSunriseValue.text =
+                Helper.convertUnixTimeToAMPM(weather.sunrise.toInt())
+            tvSunsetValue.text =
+                Helper.convertUnixTimeToAMPM(weather.sunset.toInt())
+            tvMinTemp.text = resources.getString(
+                R.string.min_temp,
+                Helper.kelvinToCelcius(weather.minTemperature.toDouble())
+            )
+            tvMaxTemp.text = resources.getString(
+                R.string.max_temp,
+                Helper.kelvinToCelcius(weather.maxTemperature.toDouble())
+            )
+            tvUpdatedAt.text =
+                resources.getString(R.string.updated_at, weather.updatedAt)
         }
     }
 
@@ -216,5 +233,7 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-
+    private fun showLoading(state: Boolean) {
+        binding.progressBar.visibility = if (state) View.VISIBLE else View.GONE
+    }
 }
