@@ -142,7 +142,7 @@ class MainActivity : AppCompatActivity() {
                             tvSunsetValue.text = Helper.convertUnixTimeToAMPM(weather.sunset.toInt())
                             tvMinTemp.text = resources.getString(R.string.min_temp, Helper.kelvinToCelcius(weather.minTemperature.toDouble()))
                             tvMaxTemp.text = resources.getString(R.string.max_temp, Helper.kelvinToCelcius(weather.maxTemperature.toDouble()))
-                            tvUpdatedAt.text = weather.updatedAt
+                            tvUpdatedAt.text = resources.getString(R.string.updated_at, weather.updatedAt)
                         }
                     }
                 }
