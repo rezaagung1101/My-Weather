@@ -3,8 +3,10 @@ package com.jetpack.compose.myweather.ui
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.Looper
+import android.provider.Settings
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -69,6 +71,7 @@ class MainActivity : AppCompatActivity() {
         }
         return viewModel
     }
+
     private fun requestLocationUpdates() {
         val locationRequest = LocationRequest.create().apply {
             interval = 10000 // 10 seconds
@@ -127,33 +130,58 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupInformation() {
-        if (checkLocationPermission()){
+        if (checkLocationPermission()) {
             weatherViewModel.apply {
-                getWeatherDB().observe(this@MainActivity) { weather ->
-                    if (weather != null) {
-                        binding.apply {
-                            tvYourCityLocation.text = weather.city
-                            tvSkyStatus.text = weather.description
-                            tvMainTemperature.text = Helper.kelvinToCelcius(weather.temperature.toDouble())
-                            tvWindValue.text = weather.speed + " km/h"
-                            tvHumidityValue.text = weather.humidity +" hPa"
-                            tvPressureValue.text = weather.pressure+ " %"
-                            tvSunriseValue.text = Helper.convertUnixTimeToAMPM(weather.sunrise.toInt())
-                            tvSunsetValue.text = Helper.convertUnixTimeToAMPM(weather.sunset.toInt())
-                            tvMinTemp.text = resources.getString(R.string.min_temp, Helper.kelvinToCelcius(weather.minTemperature.toDouble()))
-                            tvMaxTemp.text = resources.getString(R.string.max_temp, Helper.kelvinToCelcius(weather.maxTemperature.toDouble()))
-                            tvUpdatedAt.text = resources.getString(R.string.updated_at, weather.updatedAt)
+                currentCity.observe(this@MainActivity) {
+                    getCityWeatherDB(it).observe(this@MainActivity) { weather ->
+                        if (weather != null) {
+                            binding.apply {
+                                tvYourCityLocation.text = weather.city
+                                tvSkyStatus.text = weather.description
+                                tvMainTemperature.text =
+                                    Helper.kelvinToCelcius(weather.temperature.toDouble())
+                                tvWindValue.text = weather.speed + " km/h"
+                                tvHumidityValue.text = weather.humidity + " hPa"
+                                tvPressureValue.text = weather.pressure + " %"
+                                tvSunriseValue.text =
+                                    Helper.convertUnixTimeToAMPM(weather.sunrise.toInt())
+                                tvSunsetValue.text =
+                                    Helper.convertUnixTimeToAMPM(weather.sunset.toInt())
+                                tvMinTemp.text = resources.getString(
+                                    R.string.min_temp,
+                                    Helper.kelvinToCelcius(weather.minTemperature.toDouble())
+                                )
+                                tvMaxTemp.text = resources.getString(
+                                    R.string.max_temp,
+                                    Helper.kelvinToCelcius(weather.maxTemperature.toDouble())
+                                )
+                                tvUpdatedAt.text =
+                                    resources.getString(R.string.updated_at, weather.updatedAt)
+                            }
                         }
                     }
                 }
 
                 // Check if latitude and longitude have valid values
                 if (latitude.value != null && longitude.value != null && latitude.value != 0.0 && longitude.value != 0.0) {
-                    // Fetch weather data using valid latitude and longitude
                     getWeatherReport(latitude.value!!, longitude.value!!, appId)
                 } else {
                     // Request location updates if latitude or longitude is not set or is invalid
                     requestLocationUpdates()
+                }
+                binding.cardRefresh.setOnClickListener {
+                    if (checkLocationPermission()) {
+                        // Location permission is granted, so proceed with refreshing the location
+                        requestLocationUpdates()
+                        weatherViewModel.apply {
+                            getWeatherReport(
+                                latitude.value!!, longitude.value!!, appId
+                            )
+                        }
+                    } else {
+                        // Location permission is not granted, request the permission again
+                        showPermissionDeniedSnackbar()
+                    }
                 }
             }
         }
@@ -172,5 +200,21 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun showPermissionDeniedSnackbar() {
+        Snackbar.make(
+            binding.root,
+            "Location permission denied. Please grant the permission from the app settings.",
+            Snackbar.LENGTH_LONG
+        )
+            .setAction("Open Settings") {
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                val uri: Uri = Uri.fromParts("package", packageName, null)
+                intent.data = uri
+                startActivity(intent)
+            }
+            .show()
+    }
+
 
 }

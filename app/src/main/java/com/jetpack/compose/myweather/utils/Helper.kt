@@ -7,7 +7,7 @@ import java.util.TimeZone
 
 object Helper {
     fun kelvinToCelcius(temp: Double): String{
-        return String.format("%.2f", temp - 273.15)
+        return String.format("%.1f", temp - 273.15)
     }
 
     fun convertTimezoneToString(timezone: Int): String {

@@ -26,6 +26,7 @@ class ListCityActivity : AppCompatActivity() {
         binding.rvCity.adapter = CityListAdapter(arrayListCity)
         binding.btnBack.setOnClickListener {
             onBackPressed()
+            finish()
         }
     }
 }

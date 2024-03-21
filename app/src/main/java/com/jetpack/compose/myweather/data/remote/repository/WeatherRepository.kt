@@ -12,13 +12,16 @@ class WeatherRepository(private val database: WeatherDatabase, private val apiSe
     suspend fun getCurrentWeather(lat: String, long: String, app_id: String) =
         apiService.getCurrentWeather(lat, long, app_id)
 
+    suspend fun getCityCurrentWeather(city: String,app_id: String) =
+        apiService.getCityCurrentWeather(city, app_id)
+
     fun insertWeather(weather: WeatherRecord) = runBlocking {
         this.launch(Dispatchers.IO) {
             database.weatherDao().insertWeather(weather)
         }
     }
 
-    fun getWeatherDB(): LiveData<WeatherRecord> {
-        return database.weatherDao().getWeatherRecord()
+    fun getCityWeather(city: String): LiveData<WeatherRecord> {
+        return database.weatherDao().getCityWeather(city)
     }
 }
